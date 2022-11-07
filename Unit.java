@@ -29,22 +29,28 @@ public class Unit {
 
             //Invoke all the methods with annotation BeforeClass
             for (Method m: beforeClassMeths) {
-               m.invoke(o);
+                if (isStatic(m)) {
+                    m.invoke(o);
+                } else {
+                    throw new RuntimeException();
+                }
             }
 
             for (Method m: testMeths) {
-               o = runTest(beforeMeths, afterMeths, m, o, testErrors);
+               o = runMethod(beforeMeths, afterMeths, m, o, testErrors);
             }
 
             //Invoke all the methods with annotation AfterClass
             for (Method m: afterClassMeths) {
-               m.invoke(o);
+               if (isStatic(m)) {
+                    m.invoke(o);
+                } else {
+                    throw new RuntimeException();
+                }
             }
-
         } catch(Exception e) {
             throw new RuntimeException(e);   
         }
-
         return testErrors;
     }
 
@@ -61,11 +67,10 @@ public class Unit {
                 annoList.add(m);
             }
         }
-
         return sortMethods(annoList);
     }
 
-    private static Object runTest(ArrayList<Method> before, ArrayList<Method> after, Method test, Object o, HashMap<String, Throwable> testErrors) {
+    private static Object runMethod(ArrayList<Method> before, ArrayList<Method> after, Method test, Object o, HashMap<String, Throwable> testErrors) {
         Object result;
 
         try {
@@ -112,8 +117,48 @@ public class Unit {
             return m;
     }
 
+    private static boolean isStatic(Method m) {
+        return m.toString().contains("static");
+    }
+
+
+
+//************************************* PART 2 ***********************************************/
+
     public static Map<String, Object[]> quickCheckClass(String name) {
-	throw new UnsupportedOperationException();
+        HashMap<String, Object[]> testErrors = new HashMap<>();  
+
+        try {
+            Class<?> className = Class.forName(name);
+            Constructor<?> cons = className.getConstructor();
+            Object o = cons.newInstance();
+
+            Method[] methods = className.getDeclaredMethods();
+
+            ArrayList<Method> beforePropMeths = getPropMeths(methods);
+
+
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+
+        return testErrors;    
+    }
+
+    private static ArrayList<Method> getPropMeths(Method[] methods) {
+        ArrayList<Method> annoList = new ArrayList<>();
+
+        for (Method m : methods) {
+            Annotation[] annos = m.getDeclaredAnnotations();
+            
+
+            for (int i = 0; i < annos.length; i++) {
+                if (annos[i].toString().equals("@Property()")) {
+                    annoList.add(m);
+                }
+            }
+        }
+        return sortMethods(annoList);
     }
 } 
 
