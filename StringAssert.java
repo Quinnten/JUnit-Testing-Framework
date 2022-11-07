@@ -46,7 +46,7 @@ public class StringAssert {
         }
     }
 
-    public StringAssert isEmpty(String s2) {
+    public StringAssert isEmpty() {
       if (s == "") {
             return this;
         } else {
