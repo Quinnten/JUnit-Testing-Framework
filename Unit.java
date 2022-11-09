@@ -3,6 +3,8 @@ import java.lang.*;
 import java.lang.reflect.*;
 import java.lang.Exception;
 import java.lang.annotation.*;
+import java.util.Arrays;
+
 
 public class Unit {
     private static int count = 0;
@@ -148,6 +150,14 @@ public class Unit {
             throw new RuntimeException();
         }
         System.out.println(testErrors);
+        for (String o : testErrors.keySet()) {
+            Object[] val = testErrors.get(o);
+            if (val != null) {
+                for (Object obj : val) {
+                    System.out.println(obj);
+                }
+            } 
+        }
         return testErrors;    
     }
 
@@ -205,10 +215,17 @@ public class Unit {
             try {
                 Object result;
 
+                ArrayList<Object> newParams = new ArrayList<>();
+                for (Object o : params) {
+                    if (o != null) {
+                        newParams.add(o);
+                    }
+                }
+
                 if (index == 0) {
                     result = m.invoke(instance);
                 } else {
-                    result = m.invoke(instance, params);
+                    result = m.invoke(instance, newParams.toArray());
                 }
                // System.out.println("We've run this function exactly " + (count + 1) + " time(s)");
                 boolean bool = (boolean) result;
@@ -247,24 +264,87 @@ public class Unit {
             }
         }
 
-        // if (a.annotationType().equals(ListLength.class)) {
-        //     ListLength aL = (ListLength) a;
+        if (a.annotationType().equals(ListLength.class)) {
+            ListLength aL = (ListLength) a;
 
-        //     //check what the type of the list is
-        //     Annotation type = anno.get(index + 1);
+            //check what the type of the list is
+            Annotation type = anno.get(index + 1);
 
-        //     if (type.annotationType().equals(IntRange.class))
-        //         IntRange typeI = (IntRange) type;
-        //         for (int i = aL.min(); i <= aI.max(); i++ {
-        //             ArrayList<Integers> list = new ArrayList<>(i);
-        //             for (int j = 0; j < )
-        //     }
-        // }
+            //What to do if it is a List of Intergers
+            if (type.annotationType().equals(IntRange.class)) {
+                IntRange typeI = (IntRange) type;
+
+                ArrayList<Object> intRange = new ArrayList<>();
+                for (int i = typeI.min(); i <= typeI.max(); i++) {
+                    intRange.add(i);
+                }
+
+                for (int i = aL.min(); i <= aL.max(); i++) {
+                    ArrayList<ArrayList<Object>> list = getListsOfSizeI(i, intRange);
+                    for (ArrayList<Object> arr : list) {
+                        params[index] = arr;
+                        System.out.println("the array is " + arr);
+                        if (recurseInvoke(m, params, anno, index + 2) != null) {
+                            return params;
+                        }
+                    }
+                }
+            }
+
+            if (type.annotationType().equals(StringSet.class)) {
+                StringSet typeS = (StringSet) type;
+
+                ArrayList<Object> stringRange = new ArrayList<>();
+                for (int i = 0; i <= typeS.strings().length; i++) {
+                    stringRange.add(typeS.strings()[i]);
+                }
+
+                for (int i = aL.min(); i <= aL.max(); i++) {
+                    ArrayList<ArrayList<Object>> list = getListsOfSizeI(i, stringRange);
+                    for (ArrayList<Object> arr : list) {
+                        params[index] = arr;
+                        System.out.println("the array is " + arr);
+                        if (recurseInvoke(m, params, anno, index + 2) != null) {
+                            return params;
+                        }
+                    }
+                }
+            }
+        }
+
+
         // if (a.annotationType().equals(ForAll.class)) {
         //     return null;
         // }
 
         return null;
+    }
+
+    private static ArrayList<ArrayList<Object>> getListsOfSizeI(int index, ArrayList<Object> range) {
+
+        ArrayList<ArrayList<Object>> oldList = new ArrayList<>();
+        ArrayList<ArrayList<Object>> newList = new ArrayList<>();
+
+        if (index == 0) {
+            ArrayList<Object> newObj = new ArrayList<>();
+            newList.add(newObj);
+            return newList;
+        }
+
+        oldList = getListsOfSizeI(index-1, range);
+
+        for (int i = 0; i < range.size(); i++) {
+            for (ArrayList<Object> obj : oldList) { 
+                ArrayList<Object> newObj = new ArrayList<>(); 
+                for (Object o : obj) {
+                    newObj.add(o);
+                }
+                newObj.add(range.get(i));
+                newList.add(newObj);
+                System.out.println("obj = " + obj);
+            }
+        }
+        return newList;
     }
 } 
 
