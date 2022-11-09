@@ -146,18 +146,8 @@ public class Unit {
             }       
 
         } catch (Exception e) {
-            //System.out.println(e.getCause());
             throw new RuntimeException();
-        }
-        System.out.println(testErrors);
-        for (String o : testErrors.keySet()) {
-            Object[] val = testErrors.get(o);
-            if (val != null) {
-                for (Object obj : val) {
-                    System.out.println(obj);
-                }
-            } 
-        }
+        }        
         return testErrors;    
     }
 
@@ -194,16 +184,8 @@ public class Unit {
         try {
         count = 0;
         Object[] parameters = new Object[annotationList.size()];
-        System.out.println("*****************************************************");
-
-        System.out.println("Running new test " + m.getName()); 
-        System.out.println("Num of Params: " + parameters.length);        
-       
-
-
         testErrors.put(m.getName(), recurseInvoke(m, parameters, annotationList, 0));
         } catch (Exception e) {
-            System.out.println("We have an error with " + m.getName());
             System.out.println(e.getCause());
         }
     }
@@ -221,18 +203,16 @@ public class Unit {
                         newParams.add(o);
                     }
                 }
-
                 if (index == 0) {
                     result = m.invoke(instance);
                 } else {
                     result = m.invoke(instance, newParams.toArray());
                 }
-               // System.out.println("We've run this function exactly " + (count + 1) + " time(s)");
                 boolean bool = (boolean) result;
                 if (bool) {
                     count++;
                     return null;
-                } else {
+                } else {                    
                     return params;
                 }
             } catch (Exception e) {
@@ -283,7 +263,6 @@ public class Unit {
                     ArrayList<ArrayList<Object>> list = getListsOfSizeI(i, intRange);
                     for (ArrayList<Object> arr : list) {
                         params[index] = arr;
-                        System.out.println("the array is " + arr);
                         if (recurseInvoke(m, params, anno, index + 2) != null) {
                             return params;
                         }
@@ -291,19 +270,18 @@ public class Unit {
                 }
             }
 
+            //What to do if it is a List of Strings
             if (type.annotationType().equals(StringSet.class)) {
                 StringSet typeS = (StringSet) type;
 
                 ArrayList<Object> stringRange = new ArrayList<>();
-                for (int i = 0; i <= typeS.strings().length; i++) {
+                for (int i = 0; i < typeS.strings().length; i++) {
                     stringRange.add(typeS.strings()[i]);
                 }
-
                 for (int i = aL.min(); i <= aL.max(); i++) {
                     ArrayList<ArrayList<Object>> list = getListsOfSizeI(i, stringRange);
                     for (ArrayList<Object> arr : list) {
                         params[index] = arr;
-                        System.out.println("the array is " + arr);
                         if (recurseInvoke(m, params, anno, index + 2) != null) {
                             return params;
                         }
@@ -312,11 +290,8 @@ public class Unit {
             }
         }
 
-
-        // if (a.annotationType().equals(ForAll.class)) {
-        //     return null;
-        // }
-
+        if (a.annotationType().equals(ForAll.class)) {}
+       
         return null;
     }
 
@@ -341,7 +316,6 @@ public class Unit {
                 }
                 newObj.add(range.get(i));
                 newList.add(newObj);
-                System.out.println("obj = " + obj);
             }
         }
         return newList;
